@@ -20,6 +20,7 @@ import sys
 import torch
 import transformers
 from transformers import AutoModelForCausalLM, set_seed
+from peft import LoraConfig, PeftConfig
 
 from alignment import (
     DataArguments,
@@ -217,7 +218,7 @@ def main():
         use_cache=False if training_args.gradient_checkpointing else True,
         device_map=get_kbit_device_map() if quantization_config is not None else None,
         quantization_config=quantization_config,
-        attn_implementation=model_args.attn_implementation,
+        attn_implementation=model_args.attn_implementation, 
     )
 
     model = model_args.model_name_or_path
@@ -246,16 +247,26 @@ def main():
     #     model_kwargs = None
 
     training_args.model_init_kwargs = model_kwargs
-    #########################
+    ########################[#
     # Instantiate SimPO trainer
     #########################
+    peft_config = None
+    if model_args.use_peft:
+        peft_config = LoraConfig(
+            r=model_args.lora_r,
+            lora_alpha=model_args.lora_alpha,
+            lora_dropout=model_args.lora_dropout,
+            bias="none",
+            task_type="CAUSAL_LM",
+            target_modules=["q_proj","v_proj","o_proj","k_proj"],
+        )
     trainer = SimPOTrainer(
         model=model,
         args=training_args,
         train_dataset=raw_datasets["train"],
         eval_dataset=raw_datasets["test"],
         tokenizer=tokenizer,
-        peft_config=get_peft_config(model_args),
+        peft_config=peft_config,
     )
 
     ###############

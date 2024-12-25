@@ -1,0 +1,51 @@
+# Model arguments
+model_name_or_path: /home/saeednjf/nearline/rrg-afyshe/pre-trained-models/Meta-Llama-3-8B-Instruct
+torch_dtype: null
+attn_implementation: flash_attention_2
+
+# Data training arguments
+dataset_mixer:
+  /home/saeednjf/nearline/rrg-afyshe/datasets/llama3-ultrafeedback-armorm/local_data: 1.0
+dataset_splits:
+- train
+- test
+preprocessing_num_workers: 12
+
+# SimPOTrainer arguments
+bf16: true
+beta: 10
+gamma_beta_ratio: 0.3
+do_eval: true
+evaluation_strategy: steps
+eval_steps: 400
+gradient_accumulation_steps: 16
+gradient_checkpointing: false
+gradient_checkpointing_kwargs:
+  use_reentrant: False
+hub_model_id: simpo-exps-lora
+learning_rate: 1.0e-6
+log_level: info
+logging_steps: 5
+lr_scheduler_type: cosine
+max_length: 2048
+max_prompt_length: 1800
+num_train_epochs: 1
+optim: adamw_torch
+output_dir: /home/saeednjf/nearline/rrg-afyshe/saeednjf/mmpo-experiments/simpo-runs/llama-3-8b-instruct-simpo-v3-with-lora
+run_name: llama-3-8b-instruct-simpo-v3-with-lora
+per_device_train_batch_size: 2
+per_device_eval_batch_size: 4
+push_to_hub: false
+save_strategy: "steps"
+save_steps: 1000000
+report_to:
+- wandb
+save_total_limit: 20
+seed: 42
+warmup_ratio: 0.1
+use_peft: true
+lora_r: 64
+lora_alpha: 64
+lora_dropout: 0.1
+lora_target_modules: "q_proj,v_proj,o_proj,k_proj"
+lora_modules_to_save: "q_proj,v_proj,o_proj,k_proj"
