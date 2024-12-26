@@ -21,6 +21,8 @@ import torch
 import transformers
 from transformers import AutoModelForCausalLM, set_seed
 from peft import LoraConfig, PeftConfig
+from bitsandbytes.optim.adamw import AdamW8bit
+from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
 
 from alignment import (
     DataArguments,
