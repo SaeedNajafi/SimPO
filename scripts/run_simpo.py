@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# coding=utf-8
 # Copyright 2023 The HuggingFace Inc. team. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -24,7 +22,7 @@ from peft import LoraConfig, PeftConfig
 from bitsandbytes.optim.adamw import AdamW8bit
 from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
 
-from alignment import (
+from scripts.alignment import (
     DataArguments,
     DPOConfig,
     H4ArgumentParser,
@@ -37,10 +35,10 @@ from alignment import (
     get_tokenizer,
     is_adapter_model,
 )
-from alignment.data import maybe_insert_system_message, is_openai_format
+from scripts.alignment.data import maybe_insert_system_message, is_openai_format
 from peft import PeftConfig, PeftModel
-from simpo_trainer import SimPOTrainer
-from simpo_config import SimPOConfig
+from scripts.simpo_trainer import SimPOTrainer
+from scripts.simpo_config import SimPOConfig
 from dataclasses import dataclass, field
 from typing import Optional, Literal
 

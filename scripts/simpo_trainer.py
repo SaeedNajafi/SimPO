@@ -21,7 +21,7 @@ from transformers.trainer_utils import EvalLoopOutput
 from transformers.utils import is_torch_fx_proxy
 
 from trl.import_utils import is_peft_available, is_wandb_available
-from simpo_config import SimPOConfig
+from scripts.simpo_config import SimPOConfig
 
 from dataclasses import dataclass
 from typing import Dict, Literal, Optional

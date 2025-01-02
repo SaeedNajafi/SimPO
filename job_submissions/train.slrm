@@ -1,13 +1,15 @@
 #!/bin/bash
 
 #SBATCH --job-name=mmpo-experiments
-#SBATCH --account=rrg-afyshe
-#SBATCH --ntasks-per-node 1
-#SBATCH --nodes=2
-#SBATCH --gpus-per-node=1
+# #SBATCH --account=rrg-afyshe
+#SBATCH --partition=a40
+#SBATCH --qos=m
+# #SBATCH --ntasks-per-node 1
+#SBATCH --nodes=1
+#SBATCH --gpus-per-node=2
 #SBATCH --cpus-per-gpu=8
-#SBATCH --mem=32G
-#SBATCH --time=0-01:00:00
+#SBATCH --mem=64G
+#SBATCH --time=0-12:00:00
 #SBATCH --open-mode=append
 #SBATCH --wait-all-nodes=1
 #SBATCH --output=%x_%j.out
@@ -66,8 +68,7 @@ srun -N "${SLURM_NNODES}" -l \
                 --machine_rank $THEID \
                 --main_process_ip $MASTER_ADDR \
                 --main_process_port $MASTER_PORT \
-                --rdzv_endpoint $MASTER_ADDR:$MASTER_PORT \
                 --rdzv_backend c10d \
-                scripts/run_simpo.py training_configs/llama-3-8b-instruct-simpo-v3-with-lora.yaml > ${LOG_PATH} 2>&1"
+                scripts/run_simpo.py training_configs/llama-3-1b-instruct-simpo-v1-with-lora.yaml > ${LOG_PATH} 2>&1"
 
 

@@ -1,7 +1,7 @@
 from vllm import LLM, SamplingParams
 from datasets import load_dataset, load_from_disk
 import os
-os.environ["VLLM_ATTENTION_BACKEND"] = "FLASHINFER" # this is recommended for gemma-2 models; otherwise it is not needed
+# os.environ["VLLM_ATTENTION_BACKEND"] = "FLASHINFER" # this is recommended for gemma-2 models; otherwise it is not needed
 import argparse
 import json
 
@@ -25,7 +25,7 @@ args = parser.parse_args()
 print(args)
 
 data_dir = args.data_dir
-llm = LLM(model=args.model)
+llm = LLM(model=args.model)#, dtype="float16", enable_chunked_prefill=True)
 tokenizer = llm.get_tokenizer()
 
 train_dataset= load_dataset(data_dir, split='train_prefs')

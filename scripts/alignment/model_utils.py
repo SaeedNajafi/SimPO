@@ -26,8 +26,8 @@ from huggingface_hub.utils._errors import RepositoryNotFoundError
 from huggingface_hub.utils._validators import HFValidationError
 from peft import LoraConfig, PeftConfig
 
-from .configs import DataArguments, DPOConfig, ModelArguments, SFTConfig
-from .data import DEFAULT_CHAT_TEMPLATE
+from scripts.alignment.configs import DataArguments, DPOConfig, ModelArguments, SFTConfig
+from scripts.alignment.data import DEFAULT_CHAT_TEMPLATE
 
 
 def get_current_device() -> int:
