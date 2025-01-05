@@ -36,93 +36,15 @@ from scripts.alignment import (
     is_adapter_model,
 )
 from scripts.alignment.data import maybe_insert_system_message, is_openai_format
-from scripts.simpo_trainer import SimPOTrainer
-from scripts.simpo_config import SimPOConfig
+from scripts.run_simpo import apply_chat_template
+from trl import DPOTrainer
 from dataclasses import dataclass, field
 from typing import Optional, Literal
 
 logger = logging.getLogger(__name__)
 
-MISTRAL_CHAT_TEMPLATE = "{% if messages[0]['role'] == 'system' %}{% set loop_messages = messages[1:] %}{% set system_message = messages[0]['content'].strip() + '\n\n' %}{% else %}{% set loop_messages = messages %}{% set system_message = '' %}{% endif %}{% for message in loop_messages %}{% if loop.index0 == 0 %}{% set content = system_message + message['content'] %}{% else %}{% set content = message['content'] %}{% endif %}{% if message['role'] == 'user' %}{{ '[INST] ' + content.strip() + ' [/INST]' }}{% elif message['role'] == 'assistant' %}{{ ' '  + content.strip() + ' ' + eos_token }}{% endif %}{% endfor %}"
-
-def apply_chat_template(
-    example,
-    tokenizer,
-    task: Literal["sft", "generation", "rm", "simpo", "dpo", "mmpo"],
-    auto_insert_empty_system_msg: bool = True,
-    change_template = None,
-):
-    if change_template == "mistral":
-        tokenizer.chat_template = MISTRAL_CHAT_TEMPLATE
-    if task in ["sft", "generation"]:
-        messages = example["messages"]
-        # We add an empty system message if there is none
-        if auto_insert_empty_system_msg:
-            maybe_insert_system_message(messages, tokenizer)
-        example["text"] = tokenizer.apply_chat_template(
-            messages,
-            tokenize=False,
-            add_generation_prompt=True if task == "generation" else False,
-        )
-    elif task == "rm":
-        if all(k in example.keys() for k in ("chosen", "rejected")):
-            chosen_messages = example["chosen"]
-            rejected_messages = example["rejected"]
-            # We add an empty system message if there is none
-            if auto_insert_empty_system_msg:
-                maybe_insert_system_message(chosen_messages, tokenizer)
-                maybe_insert_system_message(rejected_messages, tokenizer)
-
-            example["text_chosen"] = tokenizer.apply_chat_template(chosen_messages, tokenize=False)
-            example["text_rejected"] = tokenizer.apply_chat_template(rejected_messages, tokenize=False)
-        else:
-            raise ValueError(
-                f"Could not format example as dialogue for `rm` task! Require `[chosen, rejected]` keys but found {list(example.keys())}"
-            )
-    elif task in ["simpo", "dpo", "mmpo"]:
-        if all(k in example.keys() for k in ("chosen", "rejected")):
-            if not is_openai_format(example["chosen"]) or not is_openai_format(example["rejected"]):
-                raise ValueError(
-                    f"Could not format example as dialogue for `{task}` task! Require OpenAI format for all messages"
-                )
-
-            # For DPO/ORPO, the inputs are triples of (prompt, chosen, rejected), where `chosen` and `rejected` are the final turn of a dialogue
-            # We therefore need to extract the N-1 turns to form the prompt
-            if "prompt" in example and is_openai_format(example["prompt"]):
-                prompt_messages = example["prompt"]
-                chosen_messages = example["chosen"]
-                rejected_messages = example["rejected"]
-            else:
-                prompt_messages = example["chosen"][:-1]
-                # Now we extract the final turn to define chosen/rejected responses
-                chosen_messages = example["chosen"][-1:]
-                rejected_messages = example["rejected"][-1:]
-
-            # Prepend a system message if the first message is not a system message
-            if auto_insert_empty_system_msg:
-                maybe_insert_system_message(prompt_messages, tokenizer)
-
-            example["text_prompt"] = tokenizer.apply_chat_template(prompt_messages, tokenize=False)
-            example["text_chosen"] = tokenizer.apply_chat_template(chosen_messages, tokenize=False)
-            if example["text_chosen"].startswith(tokenizer.bos_token):
-                example["text_chosen"] = example["text_chosen"][len(tokenizer.bos_token):]
-            example["text_rejected"] = tokenizer.apply_chat_template(rejected_messages, tokenize=False)
-            if example["text_rejected"].startswith(tokenizer.bos_token):
-                example["text_rejected"] = example["text_rejected"][len(tokenizer.bos_token):]
-        else:
-            raise ValueError(
-                f"Could not format example as dialogue for `{task}` task! Require either the "
-                f"`[chosen, rejected]` or `[prompt, chosen, rejected]` keys but found {list(example.keys())}"
-            )
-    else:
-        raise ValueError(
-            f"Task {task} not supported, please ensure that the provided task is one of ['sft', 'generation', 'rm', 'dpo', 'orpo']"
-        )
-    return example
-
-
 def main():
-    parser = H4ArgumentParser((ModelArguments, DataArguments, SimPOConfig))
+    parser = H4ArgumentParser((ModelArguments, DataArguments, DPOConfig))
     model_args, data_args, training_args = parser.parse()
 
     #######
@@ -184,7 +106,7 @@ def main():
         apply_chat_template,
         fn_kwargs={
             "tokenizer": tokenizer,
-            "task": "simpo",
+            "task": "dpo",
             "auto_insert_empty_system_msg": data_args.auto_insert_empty_system_msg,
             "change_template": change_template,
         },
@@ -221,6 +143,12 @@ def main():
     )
 
     model = model_args.model_name_or_path
+    ref_model = model
+    ref_model_kwargs = model_kwargs
+
+    if model_args.use_peft is True:
+        ref_model = None
+        ref_model_kwargs = None
 
     training_args.model_init_kwargs = model_kwargs
 
@@ -235,16 +163,23 @@ def main():
             target_modules=["q_proj","v_proj","o_proj","k_proj"],
         )
 
-    ########################[#
-    # Instantiate SimPO trainer
     #########################
-    trainer = SimPOTrainer(
-        model=model,
+    # Instantiate DPO trainer
+    #########################
+    trainer = DPOTrainer(
+        model,
+        ref_model,
+        model_init_kwargs=model_kwargs,
+        ref_model_init_kwargs=ref_model_kwargs,
         args=training_args,
+        beta=training_args.beta,
         train_dataset=raw_datasets["train"],
         eval_dataset=raw_datasets["test"],
         tokenizer=tokenizer,
+        max_length=training_args.max_length,
+        max_prompt_length=training_args.max_prompt_length,
         peft_config=peft_config,
+        loss_type=training_args.loss_type,
     )
 
     ###############
