@@ -18,7 +18,7 @@ gamma_beta_ratio: 0.1
 do_eval: true
 evaluation_strategy: steps
 eval_steps: 50
-gradient_accumulation_steps: 32
+gradient_accumulation_steps: 8
 gradient_checkpointing: true
 gradient_checkpointing_kwargs:
   use_reentrant: False
@@ -29,7 +29,7 @@ logging_steps: 5
 lr_scheduler_type: cosine
 max_length: 2048
 max_prompt_length: 1800
-num_train_epochs: 1
+num_train_epochs: 3
 optim: adamw_8bit
 output_dir: /scratch/ssd004/scratch/snajafi/vector-backup/simpo-experiments/llama-3-1b-instruct-simpo-v1-with-lora-1.0e-6-beta-8.0-gamma-0.1
 run_name: llama-3-1b-instruct-simpo-v1-with-lora-beta-8.0-gamma-0.1-lr-1.0e-6

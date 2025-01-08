@@ -5,7 +5,7 @@
 #SBATCH --partition=a40
 #SBATCH --qos=m
 # #SBATCH --ntasks-per-node 1
-#SBATCH --nodes=4
+#SBATCH --nodes=1
 #SBATCH --gpus-per-node=2
 #SBATCH --cpus-per-gpu=8
 #SBATCH --mem=64G
@@ -69,6 +69,6 @@ srun -N "${SLURM_NNODES}" -l \
                 --main_process_ip $MASTER_ADDR \
                 --main_process_port $MASTER_PORT \
                 --rdzv_backend c10d \
-                scripts/run_dpo.py training_configs/llama-3-1b-instruct-dpo-v1-with-lora.yaml > ${LOG_PATH} 2>&1"
+                scripts/run_mmpo.py training_configs/llama-3-1b-instruct-mmpo-v1-with-lora.yaml > ${LOG_PATH} 2>&1"
 
 

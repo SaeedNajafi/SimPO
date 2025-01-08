@@ -1,11 +1,11 @@
 #!/bin/bash
 
-#SBATCH --job-name=mmpo-experiments
+#SBATCH --job-name=simpo-experiments
 # #SBATCH --account=rrg-afyshe
 #SBATCH --partition=a40
 #SBATCH --qos=m
 # #SBATCH --ntasks-per-node 1
-#SBATCH --nodes=1
+#SBATCH --nodes=4
 #SBATCH --gpus-per-node=2
 #SBATCH --cpus-per-gpu=8
 #SBATCH --mem=64G
@@ -62,7 +62,7 @@ NUM_PROCS=$((NUM_GPUs*SLURM_NNODES))
 
 srun -N "${SLURM_NNODES}" -l \
     bash -c "WANDB_MODE=offline ACCELERATE_LOG_LEVEL=info accelerate launch \
-                --config_file=accelerate_configs/multi_gpu.yaml \
+                --config_file=accelerate_configs/deepspeed_zero3.yaml \
                 --num_machines=$SLURM_NNODES \
                 --num_processes=$NUM_PROCS \
                 --machine_rank $THEID \

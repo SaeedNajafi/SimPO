@@ -268,3 +268,5 @@ class DPOConfig(trl.DPOConfig):
     )
     optim: Optional[str] = field(default="rmsprop")
     remove_unused_columns: bool = field(default=False)
+    
+    mmpo_epsilon: float = 0.1

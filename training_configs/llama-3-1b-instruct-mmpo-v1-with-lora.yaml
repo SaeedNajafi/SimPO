@@ -14,25 +14,26 @@ preprocessing_num_workers: 4
 # DPOTrainer arguments
 precompute_ref_log_probs: false
 bf16: true
-beta: 0.05
+beta: 0.1
+mmpo_epsilon: 0.1
 do_eval: true
 evaluation_strategy: steps
 eval_steps: 50
-gradient_accumulation_steps: 8
+gradient_accumulation_steps: 32
 gradient_checkpointing: true
 gradient_checkpointing_kwargs:
   use_reentrant: False
-hub_model_id: dpo-exps-lora
+hub_model_id: mmpo-exps-lora
 learning_rate: 1.0e-6
 log_level: info
 logging_steps: 5
 lr_scheduler_type: cosine
 max_length: 2048
 max_prompt_length: 1800
-num_train_epochs: 3
+num_train_epochs: 1
 optim: adamw_8bit
-output_dir: /scratch/ssd004/scratch/snajafi/vector-backup/simpo-experiments/llama-3-1b-instruct-dpo-v1-with-lora-1.0e-6-beta-0.05
-run_name: llama-3-1b-instruct-dpo-v1-with-lora-beta-0.05-lr-1.0e-6
+output_dir: /scratch/ssd004/scratch/snajafi/vector-backup/simpo-experiments/llama-3-1b-instruct-mmpo-v1-with-lora-1.0e-6-beta-0.1-eps-0.1
+run_name: llama-3-1b-instruct-mmpo-v1-with-lora-beta-0.1-lr-1.0e-6-eps-0.1
 per_device_train_batch_size: 1
 per_device_eval_batch_size: 1
 push_to_hub: false
