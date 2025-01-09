@@ -1,15 +1,15 @@
 #!/bin/bash
 
 #SBATCH --job-name=simpo-experiments
-# #SBATCH --account=rrg-afyshe
-#SBATCH --partition=a40
-#SBATCH --qos=m
+#SBATCH --account=rrg-afyshe
+# #SBATCH --partition=a40
+# #SBATCH --qos=m
 # #SBATCH --ntasks-per-node 1
-#SBATCH --nodes=4
-#SBATCH --gpus-per-node=2
+#SBATCH --nodes=1
+#SBATCH --gpus-per-node=4
 #SBATCH --cpus-per-gpu=8
-#SBATCH --mem=64G
-#SBATCH --time=0-12:00:00
+#SBATCH --mem=128G
+#SBATCH --time=3-00:00:00
 #SBATCH --open-mode=append
 #SBATCH --wait-all-nodes=1
 #SBATCH --output=%x_%j.out
@@ -65,10 +65,10 @@ srun -N "${SLURM_NNODES}" -l \
                 --config_file=accelerate_configs/deepspeed_zero3.yaml \
                 --num_machines=$SLURM_NNODES \
                 --num_processes=$NUM_PROCS \
-                --machine_rank $THEID \
-                --main_process_ip $MASTER_ADDR \
-                --main_process_port $MASTER_PORT \
-                --rdzv_backend c10d \
+                --machine_rank=0 \
+                --main_process_ip=$MASTER_ADDR \
+                --main_process_port=$MASTER_PORT \
+                --rdzv_backend=c10d \
                 scripts/run_simpo.py training_configs/llama-3-1b-instruct-simpo-v1-with-lora.yaml > ${LOG_PATH} 2>&1"
 
 

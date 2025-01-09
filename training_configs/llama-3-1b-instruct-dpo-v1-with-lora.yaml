@@ -1,11 +1,11 @@
 # Model arguments
-model_name_or_path: /model-weights/Llama-3.2-1B-Instruct
+model_name_or_path: /home/saeednjf/nearline/rrg-afyshe/pre-trained-models/Llama-3.2-1B-Instruct
 torch_dtype: null
 attn_implementation: flash_attention_2
 
 # Data training arguments
 dataset_mixer:
-  /scratch/ssd004/scratch/snajafi/datasets/llama-3.2-1b-instruct-data: 1.0
+  /home/saeednjf/nearline/rrg-afyshe/datasets/llama-3.2-1b-instruct-data: 1.0
 dataset_splits:
 - train
 - test
@@ -17,8 +17,8 @@ bf16: true
 beta: 0.05
 do_eval: true
 evaluation_strategy: steps
-eval_steps: 50
-gradient_accumulation_steps: 8
+eval_steps: 64
+gradient_accumulation_steps: 16
 gradient_checkpointing: true
 gradient_checkpointing_kwargs:
   use_reentrant: False
@@ -29,18 +29,18 @@ logging_steps: 5
 lr_scheduler_type: cosine
 max_length: 2048
 max_prompt_length: 1800
-num_train_epochs: 3
+num_train_epochs: 5
 optim: adamw_8bit
-output_dir: /scratch/ssd004/scratch/snajafi/vector-backup/simpo-experiments/llama-3-1b-instruct-dpo-v1-with-lora-1.0e-6-beta-0.05
+output_dir: /home/saeednjf/nearline/rrg-afyshe/saeednjf/mmpo-experiments/dpo-runs/llama-3-1b-instruct-dpo-v1-with-lora-1.0e-6-beta-0.05
 run_name: llama-3-1b-instruct-dpo-v1-with-lora-beta-0.05-lr-1.0e-6
 per_device_train_batch_size: 1
 per_device_eval_batch_size: 1
 push_to_hub: false
 save_strategy: "steps"
-save_steps: 1000000
+save_steps: 64
 report_to:
 - wandb
-save_total_limit: 20
+save_total_limit: 10
 seed: 42
 warmup_ratio: 0.1
 use_peft: true
