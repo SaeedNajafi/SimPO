@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name=mmpo-experiments
+#SBATCH --job-name=slic-experiments
 # #SBATCH --account=rrg-afyshe
 #SBATCH --partition=a40
 #SBATCH --qos=m2
@@ -69,6 +69,6 @@ srun -N "${SLURM_NNODES}" -l \
                 --main_process_ip=$MASTER_ADDR \
                 --main_process_port=$MASTER_PORT \
                 --rdzv_backend=c10d \
-                scripts/run_mmpo.py training_configs/llama-3-1b-instruct-mmpo-v1-with-lora.yaml > ${LOG_PATH} 2>&1"
+                scripts/run_slic_hf.py training_configs/llama-3-1b-instruct-slic-hf-v1-with-lora.yaml > ${LOG_PATH} 2>&1"
 
 

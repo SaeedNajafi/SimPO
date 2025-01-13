@@ -11,11 +11,10 @@ dataset_splits:
 - test
 preprocessing_num_workers: 4
 
-# DPOTrainer arguments
-precompute_ref_log_probs: false
+# SimPOTrainer arguments
 bf16: true
-beta: 0.05
-mmpo_epsilon: 1.0
+beta: 1.0  # lambda in slic-hf
+gamma_beta_ratio: 0.5  # sigma in slic-hf
 do_eval: true
 evaluation_strategy: steps
 eval_steps: 50
@@ -23,7 +22,7 @@ gradient_accumulation_steps: 32
 gradient_checkpointing: true
 gradient_checkpointing_kwargs:
   use_reentrant: False
-hub_model_id: mmpo-exps-lora
+hub_model_id: slic-hf-exps-lora
 learning_rate: 1.0e-6
 log_level: info
 logging_steps: 5
@@ -32,8 +31,8 @@ max_length: 2048
 max_prompt_length: 1800
 num_train_epochs: 1
 optim: adamw_8bit
-output_dir: /scratch/ssd004/scratch/snajafi/vector-backup/simpo-experiments/llama-3-1b-instruct-mmpo-v1-with-lora-1.0e-6-beta-0.05-eps-1.0-rewards-different
-run_name: llama-3-1b-instruct-mmpo-v1-with-lora-beta-0.05-lr-1.0e-6-eps-1.0-proper-detach
+output_dir: /scratch/ssd004/scratch/snajafi/vector-backup/simpo-experiments/llama-3-1b-instruct-slic-hf-v1-with-lora-1.0e-6-lambda-1.0-sigma-0.5
+run_name: llama-3-1b-instruct-slic-hf-v1-with-lora-lambda-1.0-sigma-0.5-lr-1.0e-6
 per_device_train_batch_size: 1
 per_device_eval_batch_size: 1
 push_to_hub: false
