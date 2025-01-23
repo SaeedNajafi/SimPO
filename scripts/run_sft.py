@@ -45,69 +45,15 @@ from typing import Optional, Literal
 logger = logging.getLogger(__name__)
 
 
-# def mmpo_loss(
-#         self,
-#         chosen_logps: torch.FloatTensor,
-#         rejected_logps: torch.FloatTensor,
-#         ref_chosen_logps: torch.FloatTensor,
-#         ref_rejected_logps: torch.FloatTensor,
-#     ) -> tuple[torch.FloatTensor, torch.FloatTensor, torch.FloatTensor]:
-#     """
-#     Compute the DPO loss for a batch of policy and reference model log probabilities.
-
-#     Args:
-#         chosen_logps (`torch.FloatTensor`):
-#             Log probabilities of the model for the chosen responses. Shape: `(batch_size,)`.
-#         rejected_logps (`torch.FloatTensor`):
-#             Log probabilities of the model for the rejected responses. Shape: `(batch_size,)`.
-#         ref_chosen_logps (`torch.FloatTensor`):
-#             Log probabilities of the reference model for the chosen responses. Shape: `(batch_size,)`.
-#         ref_rejected_logps (`torch.FloatTensor`):
-#             Log probabilities of the reference model for the rejected responses. Shape: `(batch_size,)`.
-
-#     Returns:
-#         A tuple of three tensors: `(losses, chosen_rewards, rejected_rewards)`.
-#         The losses tensor contains the DPO loss for each example in the batch.
-#         The `chosen_rewards` and `rejected_rewards` tensors contain the rewards for the chosen and rejected
-#         responses, respectively.
-#     """
-#     print("This is my mpo loss function.")
-
-#     device = self.accelerator.device
-
-#     chosen_logps = chosen_logps.to(device)
-#     ref_chosen_logps = ref_chosen_logps.to(device)
-#     rejected_logps = rejected_logps.to(device)
-#     ref_rejected_logps = ref_rejected_logps.to(device)
-
-#     chosen_scores = (1.0 - self.beta) * chosen_logps + self.beta * ref_chosen_logps
-#     rejected_scores = (1.0 - self.beta) * rejected_logps + self.beta * ref_rejected_logps
-#     score_delta = (F.relu(chosen_scores - rejected_scores) + self.mmpo_epsilon).detach()
-#     acceptance_probability = F.sigmoid(score_delta)
-#     objectives = acceptance_probability * chosen_logps + (1.0 - acceptance_probability) * rejected_logps
-
-#     losses = -((1.0 - self.beta) * objectives)
-
-#     chosen_rewards = (chosen_scores).detach()
-#     rejected_rewards = (rejected_scores).detach()
-
-#     return losses, chosen_rewards, rejected_rewards
-
-def mmpo_loss(
+def mysft_loss(
         self,
         chosen_logps: torch.FloatTensor,
         rejected_logps: torch.FloatTensor,
         ref_chosen_logps: torch.FloatTensor,
         ref_rejected_logps: torch.FloatTensor,
-    ) -> torch.FloatTensor:
-    chosen_logits = (1.0 - self.beta) * chosen_logps + self.beta * ref_chosen_logps + self.mmpo_epsilon
-    rejected_logits = (1.0 - self.beta) * rejected_logps + self.beta * ref_rejected_logps
-    all_scores = torch.cat((chosen_logits.unsqueeze(1), rejected_logits.unsqueeze(1)), dim=1)
-    losses = -torch.logsumexp(all_scores, dim=1)
-    return losses
-
+    ) -> tuple[torch.FloatTensor, torch.FloatTensor, torch.FloatTensor]:
     """
-    Compute the DPO loss for a batch of policy and reference model log probabilities.
+    Compute the my SFT loss for a batch of policy and reference model log probabilities.
 
     Args:
         chosen_logps (`torch.FloatTensor`):
@@ -125,43 +71,21 @@ def mmpo_loss(
         The `chosen_rewards` and `rejected_rewards` tensors contain the rewards for the chosen and rejected
         responses, respectively.
     """
-    print("This is my mpo loss function.")
-
-    # chosen_logits = chosen_logps - self.beta * chosen_logps.detach() + self.beta * ref_chosen_logps + self.mmpo_epsilon
-    # rejected_logits = rejected_logps - self.beta * rejected_logps.detach() + self.beta * ref_rejected_logps
+    print("This is my sft loss function.")
 
     device = self.accelerator.device
 
     chosen_logps = chosen_logps.to(device)
-    ref_chosen_logps = ref_chosen_logps.to(device)
     rejected_logps = rejected_logps.to(device)
-    ref_rejected_logps = ref_rejected_logps.to(device)
+    losses = -chosen_logps
 
-    chosen_logits = (1.0 - self.beta) * chosen_logps + self.beta * ref_chosen_logps + self.mmpo_epsilon
-    rejected_logits = (1.0 - self.beta) * rejected_logps + self.beta * ref_rejected_logps
-    all_scores = torch.cat((chosen_logits.unsqueeze(1), rejected_logits.unsqueeze(1)), dim=1)
-    losses = -torch.logsumexp(all_scores, dim=1)
-
-    # DPO logits
-    # logits = chosen_logps - ref_chosen_logps - rejected_logps + ref_rejected_logps
-    # losses += -F.logsigmoid(self.beta * logits)
-
-    # score_delta = (F.relu(chosen_scores - rejected_scores) + self.mmpo_epsilon).detach()
-    # acceptance_probability = F.sigmoid(score_delta)
-    # objectives = acceptance_probability * chosen_logps + (1.0 - acceptance_probability) * rejected_logps
-    # losses = -((1.0 - self.beta) * objectives)
-
-    # chosen_rewards = self.beta * (chosen_logps - ref_chosen_logps).detach()
-    # rejected_rewards = self.beta * (rejected_logps - ref_rejected_logps).detach()
-    # chosen_rewards = chosen_logps.detach()
-    # rejected_rewards = rejected_logps.detach()
-    chosen_rewards = chosen_logits.detach()
-    rejected_rewards = rejected_logits.detach()
+    chosen_rewards = chosen_logps.detach()
+    rejected_rewards = rejected_logps.detach()
 
     return losses, chosen_rewards, rejected_rewards
 
 # Override the dpo_loss function.
-DPOTrainer.dpo_loss = mmpo_loss_version2
+DPOTrainer.dpo_loss = mysft_loss
 
 def main():
     parser = H4ArgumentParser((ModelArguments, DataArguments, DPOConfig))
@@ -226,7 +150,7 @@ def main():
         apply_chat_template,
         fn_kwargs={
             "tokenizer": tokenizer,
-            "task": "mmpo",
+            "task": "mysft",
             "auto_insert_empty_system_msg": data_args.auto_insert_empty_system_msg,
             "change_template": change_template,
         },

@@ -48,7 +48,7 @@ MISTRAL_CHAT_TEMPLATE = "{% if messages[0]['role'] == 'system' %}{% set loop_mes
 def apply_chat_template(
     example,
     tokenizer,
-    task: Literal["sft", "generation", "rm", "simpo", "dpo", "mmpo", "slic-hf"],
+    task: Literal["sft", "generation", "rm", "simpo", "dpo", "mmpo", "slic-hf", "mysft"],
     auto_insert_empty_system_msg: bool = True,
     change_template = None,
 ):
@@ -79,7 +79,7 @@ def apply_chat_template(
             raise ValueError(
                 f"Could not format example as dialogue for `rm` task! Require `[chosen, rejected]` keys but found {list(example.keys())}"
             )
-    elif task in ["simpo", "dpo", "mmpo", "rrhf", "slic-hf"]:
+    elif task in ["simpo", "dpo", "mmpo", "rrhf", "slic-hf", "mysft"]:
         if all(k in example.keys() for k in ("chosen", "rejected")):
             if not is_openai_format(example["chosen"]) or not is_openai_format(example["rejected"]):
                 raise ValueError(
